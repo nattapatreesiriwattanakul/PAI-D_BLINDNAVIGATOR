@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pai Dee Admin Panel</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #0066cc;
+        margin-bottom: 30px;
+        text-align: center;
+      }
+
+      h2 {
+        color: #333;
+        margin: 30px 0 15px 0;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #0066cc;
+      }
+
+      .login-form,
+      .section {
+        margin-bottom: 30px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #555;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+
+      button {
+        background: #0066cc;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-right: 10px;
+      }
+
+      button:hover {
+        background: #0052a3;
+      }
+
+      button.secondary {
+        background: #ffb800;
+      }
+
+      button.secondary:hover {
+        background: #e6a600;
+      }
+
+      button.danger {
+        background: #cc0000;
+      }
+
+      button.danger:hover {
+        background: #a30000;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+
+      th {
+        background: #f8f8f8;
+        font-weight: 600;
+        color: #333;
+      }
+
+      tr:hover {
+        background: #f5f5f5;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .message {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+
+      .message.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .message.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .tabs {
+        display: flex;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #ddd;
+      }
+
+      .tab {
+        padding: 15px 25px;
+        cursor: pointer;
+        background: #f8f8f8;
+        border: none;
+        border-bottom: 3px solid transparent;
+        font-size: 16px;
+        color: darkgrey;
+      }
+
+      .tab.active {
+        background: white;
+        border-bottom-color: #0066cc;
+        color: #0066cc;
+        font-weight: 600;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+
+      .card {
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background: #fafafa;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎯 Pai Dee Admin Panel</h1>
+
+      <!-- Login Section -->
+      <div id="loginSection" class="section">
+        <h2>เข้าสู่ระบบ (Login)</h2>
+        <div class="login-form">
+          <div class="form-group">
+            <label>Username:</label>
+            <input type="text" id="loginUsername" value="admin" />
+          </div>
+          <div class="form-group">
+            <label>Password:</label>
+            <input type="password" id="loginPassword" value="admin123" />
+          </div>
+          <button onclick="login()">Login</button>
+        </div>
+      </div>
+
+      <!-- Main Admin Section (hidden until logged in) -->
+      <div id="adminSection" class="hidden">
+        <div style="text-align: right; margin-bottom: 20px">
+          <span
+            id="adminUsername"
+            style="margin-right: 15px; font-weight: 600"
+          ></span>
+          <button class="danger" onclick="logout()">Logout</button>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('buildings')">
+            อาคาร (Buildings)
+          </button>
+          <button class="tab" onclick="switchTab('floors')">
+            ชั้น (Floors)
+          </button>
+          <button class="tab" onclick="switchTab('rooms')">ห้อง (Rooms)</button>
+          <button class="tab" onclick="switchTab('beacons')">Beacons</button>
+        </div>
+
+        <!-- Buildings Tab -->
+        <div id="buildingsTab" class="tab-content active">
+          <h2>จัดการอาคาร (Manage Buildings)</h2>
+          <button onclick="showAddBuildingForm()">+ เพิ่มอาคาร</button>
+
+          <div
+            id="addBuildingForm"
+            class="hidden"
+            style="
+              margin-top: 20px;
+              padding: 20px;
+              background: #f8f8f8;
+              border-radius: 5px;
+            "
+          >
+            <h3>เพิ่มอาคารใหม่</h3>
+            <div class="form-group">
+              <label>ชื่ออาคาร (Building Name):</label>
+              <input type="text" id="buildingName" />
+            </div>
+            <div class="form-group">
+              <label>ที่อยู่ (Address):</label>
+              <textarea id="buildingAddress" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Latitude:</label>
+              <input type="number" step="0.000001" id="buildingLat" />
+            </div>
+            <div class="form-group">
+              <label>Longitude:</label>
+              <input type="number" step="0.000001" id="buildingLng" />
+            </div>
+            <div class="form-group">
+              <label>รายละเอียด (Description):</label>
+              <textarea id="buildingDesc" rows="3"></textarea>
+            </div>
+            <button onclick="addBuilding()">บันทึก</button>
+            <button class="secondary" onclick="hideAddBuildingForm()">
+              ยกเลิก
+            </button>
+          </div>
+
+          <div id="buildingsList"></div>
+        </div>
+
+        <!-- Floors Tab -->
+        <div id="floorsTab" class="tab-content">
+          <h2>จัดการชั้น (Manage Floors)</h2>
+          <div class="form-group">
+            <label>เลือกอาคาร (Select Building):</label>
+            <select id="floorBuildingSelect" onchange="loadFloors()">
+              <option value="">-- เลือกอาคาร --</option>
+            </select>
+          </div>
+          <button onclick="showAddFloorForm()">+ เพิ่มชั้น</button>
+
+          <div
+            id="addFloorForm"
+            class="hidden"
+            style="
+              margin-top: 20px;
+              padding: 20px;
+              background: #f8f8f8;
+              border-radius: 5px;
+            "
+          >
+            <h3>เพิ่มชั้นใหม่</h3>
+            <div class="form-group">
+              <label>หมายเลขชั้น (Floor Number):</label>
+              <input type="number" id="floorNumber" />
+            </div>
+            <div class="form-group">
+              <label>ชื่อชั้น (Floor Name):</label>
+              <input type="text" id="floorName" />
+            </div>
+            <div class="form-group">
+              <label>ความกว้างแผนที่ (Map Width in meters):</label>
+              <input type="number" step="0.1" id="floorMapWidth" />
+            </div>
+            <div class="form-group">
+              <label>ความสูงแผนที่ (Map Height in meters):</label>
+              <input type="number" step="0.1" id="floorMapHeight" />
+            </div>
+            <div class="form-group">
+              <label>รูปแผนผังชั้น (Floor Map Image):</label>
+              <input type="file" id="floorMapImage" accept="image/*" />
+              <div id="floorMapPreview" style="margin-top: 10px"></div>
+            </div>
+            <button onclick="addFloor()">บันทึก</button>
+            <button class="secondary" onclick="hideAddFloorForm()">
+              ยกเลิก
+            </button>
+          </div>
+
+          <div id="floorsList"></div>
+        </div>
+
+        <!-- Rooms Tab -->
+        <div id="roomsTab" class="tab-content">
+          <h2>จัดการห้อง (Manage Rooms)</h2>
+          <div class="form-group">
+            <label>เลือกอาคาร (Select Building):</label>
+            <select id="roomBuildingSelect" onchange="loadFloorsForRooms()">
+              <option value="">-- เลือกอาคาร --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>เลือกชั้น (Select Floor):</label>
+            <select id="roomFloorSelect" onchange="loadRooms()">
+              <option value="">-- เลือกชั้น --</option>
+            </select>
+          </div>
+          <button onclick="showAddRoomForm()">+ เพิ่มห้อง</button>
+
+          <div
+            id="addRoomForm"
+            class="hidden"
+            style="
+              margin-top: 20px;
+              padding: 20px;
+              background: #f8f8f8;
+              border-radius: 5px;
+            "
+          >
+            <h3>เพิ่มห้องใหม่</h3>
+            <div class="form-group">
+              <label>หมายเลขห้อง (Room Number):</label>
+              <input type="text" id="roomNumber" />
+            </div>
+            <div class="form-group">
+              <label>ชื่อห้อง (Room Name):</label>
+              <input type="text" id="roomName" />
+            </div>
+            <div class="form-group">
+              <label>X Coordinate (meters):</label>
+              <input type="number" step="0.1" id="roomX" />
+            </div>
+            <div class="form-group">
+              <label>Y Coordinate (meters):</label>
+              <input type="number" step="0.1" id="roomY" />
+            </div>
+            <div class="form-group">
+              <label>รายละเอียด (Description):</label>
+              <textarea id="roomDesc" rows="3"></textarea>
+            </div>
+            <button onclick="addRoom()">บันทึก</button>
+            <button class="secondary" onclick="hideAddRoomForm()">
+              ยกเลิก
+            </button>
+          </div>
+
+          <div id="roomsList"></div>
+        </div>
+
+        <!-- Beacons Tab -->
+        <div id="beaconsTab" class="tab-content">
+          <h2>จัดการ Beacons (Manage Beacons)</h2>
+          <div class="form-group">
+            <label>เลือกอาคาร (Select Building):</label>
+            <select id="beaconBuildingSelect" onchange="loadFloorsForBeacons()">
+              <option value="">-- เลือกอาคาร --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>เลือกชั้น (Select Floor):</label>
+            <select id="beaconFloorSelect" onchange="loadBeacons()">
+              <option value="">-- เลือกชั้น --</option>
+            </select>
+          </div>
+          <button onclick="showAddBeaconForm()">+ เพิ่ม Beacon</button>
+
+          <div
+            id="addBeaconForm"
+            class="hidden"
+            style="
+              margin-top: 20px;
+              padding: 20px;
+              background: #f8f8f8;
+              border-radius: 5px;
+            "
+          >
+            <h3>เพิ่ม Beacon ใหม่</h3>
+            <div class="form-group">
+              <label>UUID:</label>
+              <input
+                type="text"
+                id="beaconUuid"
+                value="FDA50693-A4E2-4FB1-AFCF-C6EB07647825"
+              />
+            </div>
+            <div class="form-group">
+              <label>Major:</label>
+              <input type="number" id="beaconMajor" />
+            </div>
+            <div class="form-group">
+              <label>Minor:</label>
+              <input type="number" id="beaconMinor" />
+            </div>
+            <div class="form-group">
+              <label>X Coordinate (meters):</label>
+              <input type="number" step="0.1" id="beaconX" />
+            </div>
+            <div class="form-group">
+              <label>Y Coordinate (meters):</label>
+              <input type="number" step="0.1" id="beaconY" />
+            </div>
+            <div class="form-group">
+              <label>ชื่อ Beacon (Name):</label>
+              <input type="text" id="beaconName" />
+            </div>
+            <div class="form-group">
+              <label>TX Power (dBm):</label>
+              <input type="number" id="beaconTxPower" value="-59" />
+            </div>
+            <button onclick="addBeacon()">บันทึก</button>
+            <button class="secondary" onclick="hideAddBeaconForm()">
+              ยกเลิก
+            </button>
+          </div>
+
+          <div id="beaconsList"></div>
+        </div>
+      </div>
+
+      <div id="messageArea"></div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:3000/api";
+      let authToken = null;
+
+      // Authentication
+      async function login() {
+        const username = document.getElementById("loginUsername").value;
+        const password = document.getElementById("loginPassword").value;
+
+        try {
+          const response = await fetch(`${API_BASE}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            authToken = data.token;
+            document.getElementById("adminUsername").textContent =
+              data.user.username;
+            document.getElementById("loginSection").classList.add("hidden");
+            document.getElementById("adminSection").classList.remove("hidden");
+            showMessage("เข้าสู่ระบบสำเร็จ!", "success");
+            loadBuildings();
+          } else {
+            showMessage("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง", "error");
+          }
+        } catch (error) {
+          showMessage("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์", "error");
+        }
+      }
+
+      function logout() {
+        authToken = null;
+        document.getElementById("loginSection").classList.remove("hidden");
+        document.getElementById("adminSection").classList.add("hidden");
+      }
+
+      // Utility functions
+      function showMessage(message, type = "success") {
+        const messageArea = document.getElementById("messageArea");
+        messageArea.innerHTML = `<div class="message ${type}">${message}</div>`;
+        setTimeout(() => (messageArea.innerHTML = ""), 5000);
+      }
+
+      function switchTab(tabName) {
+        // Hide all tabs
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((tab) => tab.classList.remove("active"));
+        document
+          .querySelectorAll(".tab")
+          .forEach((tab) => tab.classList.remove("active"));
+
+        // Show selected tab
+        document.getElementById(`${tabName}Tab`).classList.add("active");
+        event.target.classList.add("active");
+      }
+
+      // Buildings
+      function showAddBuildingForm() {
+        document.getElementById("addBuildingForm").classList.remove("hidden");
+      }
+
+      function hideAddBuildingForm() {
+        document.getElementById("addBuildingForm").classList.add("hidden");
+      }
+
+      async function loadBuildings() {
+        try {
+          const response = await fetch(`${API_BASE}/buildings`);
+          const buildings = await response.json();
+
+          let html =
+            "<table><tr><th>ชื่ออาคาร</th><th>ที่อยู่</th><th>การจัดการ</th></tr>";
+          buildings.forEach((building) => {
+            html += `<tr>
+                        <td>${building.name}</td>
+                        <td>${building.address || ""}</td>
+                        <td>
+                          <button onclick="editBuilding('${
+                            building.id
+                          }')">แก้ไข</button>
+                          <button class="danger" onclick="deleteBuilding('${
+                            building.id
+                          }')">ลบ</button>
+                        </td>
+                    </tr>`;
+          });
+          html += "</table>";
+          document.getElementById("buildingsList").innerHTML = html;
+
+          // Update selects
+          updateBuildingSelects(buildings);
+        } catch (error) {
+          showMessage("ไม่สามารถโหลดข้อมูลอาคาร", "error");
+        }
+      }
+
+      function updateBuildingSelects(buildings) {
+        const selects = [
+          "floorBuildingSelect",
+          "roomBuildingSelect",
+          "beaconBuildingSelect",
+        ];
+        selects.forEach((selectId) => {
+          const select = document.getElementById(selectId);
+          select.innerHTML = '<option value="">-- เลือกอาคาร --</option>';
+          buildings.forEach((b) => {
+            select.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+          });
+        });
+      }
+
+      async function addBuilding() {
+        const data = {
+          name: document.getElementById("buildingName").value,
+          address: document.getElementById("buildingAddress").value,
+          latitude: parseFloat(document.getElementById("buildingLat").value),
+          longitude: parseFloat(document.getElementById("buildingLng").value),
+          description: document.getElementById("buildingDesc").value,
+        };
+
+        try {
+          const response = await fetch(`${API_BASE}/buildings`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            showMessage("เพิ่มอาคารสำเร็จ!", "success");
+            hideAddBuildingForm();
+            loadBuildings();
+          }
+        } catch (error) {
+          showMessage("ไม่สามารถเพิ่มอาคาร", "error");
+        }
+      }
+
+      async function deleteBuilding(id) {
+        if (!confirm("คุณแน่ใจหรือไม่ที่จะลบอาคารนี้?")) return;
+
+        try {
+          const response = await fetch(`${API_BASE}/buildings/${id}`, {
+            method: "DELETE",
+          });
+
+          if (response.ok) {
+            showMessage("ลบอาคารสำเร็จ!", "success");
+            loadBuildings();
+          }
+        } catch (error) {
+          showMessage("ไม่สามารถลบอาคาร", "error");
+        }
+      }
+
+      // Similar functions for Floors, Rooms, and Beacons would follow...
+      // Simplified for brevity
+
+      async function loadFloors() {
+        const buildingId = document.getElementById("floorBuildingSelect").value;
+        if (!buildingId) return;
+
+        try {
+          const response = await fetch(
+            `${API_BASE}/buildings/${buildingId}/floors`
+          );
+          const floors = await response.json();
+
+          let html =
+            "<table><tr><th>ชั้น</th><th>ชื่อชั้น</th><th>แผนผัง</th><th>การจัดการ</th></tr>";
+          floors.forEach((floor) => {
+            const imagePreview = floor.mapImageUrl
+              ? `<img src="${floor.mapImageUrl}" style="max-width: 100px; max-height: 60px;" />`
+              : "ไม่มีรูป";
+            html += `<tr>
+                        <td>${floor.floorNumber}</td>
+                        <td>${floor.floorName || ""}</td>
+                        <td>${imagePreview}</td>
+                        <td>
+                          <button onclick="editFloor('${
+                            floor.id
+                          }')">แก้ไข</button>
+                          <button class="danger" onclick="deleteFloor('${
+                            floor.id
+                          }')">ลบ</button>
+                        </td>
+                    </tr>`;
+          });
+          html += "</table>";
+          document.getElementById("floorsList").innerHTML = html;
+        } catch (error) {
+          showMessage("ไม่สามารถโหลดข้อมูลชั้น", "error");
+        }
+      }
+
+      function showAddFloorForm() {
+        document.getElementById("addFloorForm").classList.remove("hidden");
+      }
+      function hideAddFloorForm() {
+        document.getElementById("addFloorForm").classList.add("hidden");
+      }
+      function showAddRoomForm() {
+        document.getElementById("addRoomForm").classList.remove("hidden");
+      }
+      function hideAddRoomForm() {
+        document.getElementById("addRoomForm").classList.add("hidden");
+      }
+      function showAddBeaconForm() {
+        document.getElementById("addBeaconForm").classList.remove("hidden");
+      }
+      function hideAddBeaconForm() {
+        document.getElementById("addBeaconForm").classList.add("hidden");
+      }
+
+      async function addFloor() {
+        const buildingId = document.getElementById("floorBuildingSelect").value;
+
+        // Upload image first if selected
+        let mapImageUrl = null;
+        const fileInput = document.getElementById("floorMapImage");
+        if (fileInput.files && fileInput.files[0]) {
+          mapImageUrl = await uploadFloorMapImage(fileInput.files[0]);
+          if (!mapImageUrl) {
+            showMessage("ไม่สามารถอัปโหลดรูปภาพ", "error");
+            return;
+          }
+        }
+
+        const data = {
+          building_id: buildingId,
+          floor_number: parseInt(document.getElementById("floorNumber").value),
+          floor_name: document.getElementById("floorName").value,
+          map_width: parseFloat(document.getElementById("floorMapWidth").value),
+          map_height: parseFloat(
+            document.getElementById("floorMapHeight").value
+          ),
+          map_image_url: mapImageUrl,
+        };
+
+        try {
+          const response = await fetch(`${API_BASE}/floors`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            showMessage("เพิ่มชั้นสำเร็จ!", "success");
+            hideAddFloorForm();
+            resetFloorForm();
+            loadFloors();
+          }
+        } catch (error) {
+          showMessage("ไม่สามารถเพิ่มชั้น", "error");
+        }
+      }
+
+      async function uploadFloorMapImage(file) {
+        try {
+          const formData = new FormData();
+          formData.append("floorMap", file);
+
+          const response = await fetch(`${API_BASE}/auth/upload-floor-map`, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            return data.url;
+          }
+          return null;
+        } catch (error) {
+          console.error("Upload error:", error);
+          return null;
+        }
+      }
+
+      // Edit Building
+      async function editBuilding(id) {
+        try {
+          const response = await fetch(`${API_BASE}/buildings/${id}`);
+          const building = await response.json();
+
+          document.getElementById("buildingName").value = building.name;
+          document.getElementById("buildingAddress").value =
+            building.address || "";
+          document.getElementById("buildingLat").value =
+            building.latitude || "";
+          document.getElementById("buildingLng").value =
+            building.longitude || "";
+          document.getElementById("buildingDesc").value =
+            building.description || "";
+
+          showAddBuildingForm();
+
+          // Change button to update mode
+          const form = document.getElementById("addBuildingForm");
+          form.querySelector("h3").textContent = "แก้ไขอาคาร";
+          const saveBtn = form.querySelector("button");
+          saveBtn.textContent = "อัปเดต";
+          saveBtn.onclick = () => updateBuilding(id);
+        } catch (error) {
+          showMessage("ไม่สามารถโหลดข้อมูลอาคาร", "error");
+        }
+      }
+
+      async function updateBuilding(id) {
+        const data = {
+          name: document.getElementById("buildingName").value,
+          address: document.getElementById("buildingAddress").value,
+          latitude: parseFloat(document.getElementById("buildingLat").value),
+          longitude: parseFloat(document.getElementById("buildingLng").value),
+          description: document.getElementById("buildingDesc").value,
+        };
+
+        try {
+          const response = await fetch(`${API_BASE}/buildings/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            showMessage("อัปเดตอาคารสำเร็จ!", "success");
+            hideAddBuildingForm();
+            resetBuildingForm();
+            loadBuildings();
+          }
+        } catch (error) {
+          showMessage("ไม่สามารถอัปเดตอาคาร", "error");
+        }
+      }
+
+      function resetBuildingForm() {
+        document.getElementById("buildingName").value = "";
+        document.getElementById("buildingAddress").value = "";
+        document.getElementById("buildingLat").value = "";
+        document.getElementById("buildingLng").value = "";
+        document.getElementById("buildingDesc").value = "";
+
+        const form = document.getElementById("addBuildingForm");
+        form.querySelector("h3").textContent = "เพิ่มอาคารใหม่";
+        const saveBtn = form.querySelector("button");
+        saveBtn.textContent = "บันทึก";
+        saveBtn.onclick = addBuilding;
+      }
+
+      // Rooms functions
+      async function loadFloorsForRooms() {
+        const buildingId = document.getElementById("roomBuildingSelect").value;
+        const floorSelect = document.getElementById("roomFloorSelect");
+        floorSelect.innerHTML = '<option value="">-- เลือกชั้น --</option>';
+
+        if (!buildingId) return;
+
+        try {
+          const response = await fetch(
+            `${API_BASE}/buildings/${buildingId}/floors`
+          );
+          const floors = await response.json();
+
+          floors.forEach((floor) => {
+            floorSelect.innerHTML += `<option value="${floor.id}">${
+              floor.floorNumber
+            } - ${floor.floorName || ""}</option>`;
+          });
+        } catch (error) {
+          showMessage("ไม่สามารถโหลดข้อมูลชั้น", "error");
+        }
+      }
+
+      async function loadRooms() {
+        const floorId = document.getElementById("roomFloorSelect").value;
+        if (!floorId) return;
+
+        try {
+          const response = await fetch(`${API_BASE}/floors/${floorId}/rooms`);
+          const rooms = await response.json();
+
+          let html =
+            "<table><tr><th>หมายเลขห้อง</th><th>ชื่อห้อง</th><th>X</th><th>Y</th><th>การจัดการ</th></tr>";
+          rooms.forEach((room) => {
+            html += `<tr>
+                      <td>${room.roomNumber}</td>
+                      <td>${room.roomName || ""}</td>
+                      <td>${room.x}</td>
+                      <td>${room.y}</td>
+                      <td>
+                        <button onclick="editRoom('${room.id}')">แก้ไข</button>
+                        <button class="danger" onclick="deleteRoom('${
+                          room.id
+                        }')">ลบ</button>
+                      </td>
+                    </tr>`;
+          });
+          html += "</table>";
+          document.getElementById("roomsList").innerHTML = html;
+        } catch (error) {
+          showMessage("ไม่สามารถโหลดข้อมูลห้อง", "error");
+        }
+      }
+
+      async function addRoom() {
+        const floorId = document.getElementById("roomFloorSelect").value;
+        const data = {
+          floor_id: floorId,
+          room_number: document.getElementById("roomNumber").value,
+          room_name: document.getElementById("roomName").value,
+          x: parseFloat(document.getElementById("roomX").value),
+          y: parseFloat(document.getElementById("roomY").value),
+          description: document.getElementById("roomDesc").value,
+        };
+
+        try {
+          const response = await fetch(`${API_BASE}/rooms`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            showMessage("เพิ่มห้องสำเร็จ!", "success");
+            hideAddRoomForm();
+            resetRoomForm();
+            loadRooms();
+          }
+        } catch (error) {
+          showMessage("ไม่สามารถเพิ่มห้อง", "error");
+        }
+      }
+
+      async function editRoom(id) {
+        try {
+          const response = await fetch(`${API_BASE}/rooms/${id}`);
+          const room = await response.json();
+
+          document.getElementById("roomNumber").value = room.roomNumber;
+          document.getElementById("roomName").value = room.roomName || "";
+          document.getElementById("roomX").value = room.x;
+          document.getElementById("roomY").value = room.y;
+          document.getElementById("roomDesc").value = room.description || "";
+
+          showAddRoomForm();
+
+          const form = document.getElementById("addRoomForm");
+          form.querySelector("h3").textContent = "แก้ไขห้อง";
+          const saveBtn = form.querySelector("button");
+          saveBtn.textContent = "อัปเดต";
+          saveBtn.onclick = () => updateRoom(id);
+        } catch (error) {
+          showMessage("ไม่สามารถโหลดข้อมูลห้อง", "error");
+        }
+      }
+
+      async function updateRoom(id) {
+        const floorId = document.getElementById("roomFloorSelect").value;
+        const data = {
+          floor_id: floorId,
+          room_number: document.getElementById("roomNumber").value,
+          room_name: document.getElementById("roomName").value,
+          x: parseFloat(document.getElementById("roomX").value),
+          y: parseFloat(document.getElementById("roomY").value),
+          description: document.getElementById("roomDesc").value,
+        };
+
+        try {
+          const response = await fetch(`${API_BASE}/rooms/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            showMessage("อัปเดตห้องสำเร็จ!", "success");
+            hideAddRoomForm();
+            resetRoomForm();
+            loadRooms();
+          }
+        } catch (error) {
+          showMessage("ไม่สามารถอัปเดตห้อง", "error");
+        }
+      }
+
+      async function deleteRoom(id) {
+        if (!confirm("คุณแน่ใจหรือไม่ที่จะลบห้องนี้?")) return;
+
+        try {
+          const response = await fetch(`${API_BASE}/rooms/${id}`, {
+            method: "DELETE",
+          });
+
+          if (response.ok) {
+            showMessage("ลบห้องสำเร็จ!", "success");
+            loadRooms();
+          }
+        } catch (error) {
+          showMessage("ไม่สามารถลบห้อง", "error");
+        }
+      }
+
+      function resetRoomForm() {
+        document.getElementById("roomNumber").value = "";
+        document.getElementById("roomName").value = "";
+        document.getElementById("roomX").value = "";
+        document.getElementById("roomY").value = "";
+        document.getElementById("roomDesc").value = "";
+
+        const form = document.getElementById("addRoomForm");
+        form.querySelector("h3").textContent = "เพิ่มห้องใหม่";
+        const saveBtn = form.querySelector("button");
+        saveBtn.textContent = "บันทึก";
+        saveBtn.onclick = addRoom;
+      }
+
+      // Beacons functions
+      async function loadFloorsForBeacons() {
+        const buildingId = document.getElementById(
+          "beaconBuildingSelect"
+        ).value;
+        const floorSelect = document.getElementById("beaconFloorSelect");
+        floorSelect.innerHTML = '<option value="">-- เลือกชั้น --</option>';
+
+        if (!buildingId) return;
+
+        try {
+          const response = await fetch(
+            `${API_BASE}/buildings/${buildingId}/floors`
+          );
+          const floors = await response.json();
+
+          floors.forEach((floor) => {
+            floorSelect.innerHTML += `<option value="${floor.id}">${
+              floor.floorNumber
+            } - ${floor.floorName || ""}</option>`;
+          });
+        } catch (error) {
+          showMessage("ไม่สามารถโหลดข้อมูลชั้น", "error");
+        }
+      }
+
+      async function loadBeacons() {
+        const floorId = document.getElementById("beaconFloorSelect").value;
+        if (!floorId) return;
+
+        try {
+          const response = await fetch(
+            `${API_BASE}/beacons?floor_id=${floorId}`
+          );
+          const beacons = await response.json();
+
+          let html =
+            "<table><tr><th>ชื่อ</th><th>UUID</th><th>Major</th><th>Minor</th><th>X</th><th>Y</th><th>การจัดการ</th></tr>";
+          beacons.forEach((beacon) => {
+            html += `<tr>
+                      <td>${beacon.name || ""}</td>
+                      <td>${beacon.uuid}</td>
+                      <td>${beacon.major}</td>
+                      <td>${beacon.minor}</td>
+                      <td>${beacon.x}</td>
+                      <td>${beacon.y}</td>
+                      <td>
+                        <button onclick="editBeacon('${
+                          beacon.id
+                        }')">แก้ไข</button>
+                        <button class="danger" onclick="deleteBeacon('${
+                          beacon.id
+                        }')">ลบ</button>
+                      </td>
+                    </tr>`;
+          });
+          html += "</table>";
+          document.getElementById("beaconsList").innerHTML = html;
+        } catch (error) {
+          showMessage("ไม่สามารถโหลดข้อมูล Beacon", "error");
+        }
+      }
+
+      async function addBeacon() {
+        const floorId = document.getElementById("beaconFloorSelect").value;
+        const data = {
+          floor_id: floorId,
+          uuid: document.getElementById("beaconUuid").value,
+          major: parseInt(document.getElementById("beaconMajor").value),
+          minor: parseInt(document.getElementById("beaconMinor").value),
+          x: parseFloat(document.getElementById("beaconX").value),
+          y: parseFloat(document.getElementById("beaconY").value),
+          name: document.getElementById("beaconName").value,
+          tx_power: parseInt(document.getElementById("beaconTxPower").value),
+        };
+
+        try {
+          const response = await fetch(`${API_BASE}/beacons`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            showMessage("เพิ่ม Beacon สำเร็จ!", "success");
+            hideAddBeaconForm();
+            resetBeaconForm();
+            loadBeacons();
+          }
+        } catch (error) {
+          showMessage("ไม่สามารถเพิ่ม Beacon", "error");
+        }
+      }
+
+      async function editBeacon(id) {
+        try {
+          const response = await fetch(`${API_BASE}/beacons/${id}`);
+          const beacon = await response.json();
+
+          document.getElementById("beaconUuid").value = beacon.uuid;
+          document.getElementById("beaconMajor").value = beacon.major;
+          document.getElementById("beaconMinor").value = beacon.minor;
+          document.getElementById("beaconX").value = beacon.x;
+          document.getElementById("beaconY").value = beacon.y;
+          document.getElementById("beaconName").value = beacon.name || "";
+          document.getElementById("beaconTxPower").value = beacon.txPower;
+
+          showAddBeaconForm();
+
+          const form = document.getElementById("addBeaconForm");
+          form.querySelector("h3").textContent = "แก้ไข Beacon";
+          const saveBtn = form.querySelector("button");
+          saveBtn.textContent = "อัปเดต";
+          saveBtn.onclick = () => updateBeacon(id);
+        } catch (error) {
+          showMessage("ไม่สามารถโหลดข้อมูล Beacon", "error");
+        }
+      }
+
+      async function updateBeacon(id) {
+        const floorId = document.getElementById("beaconFloorSelect").value;
+        const data = {
+          floor_id: floorId,
+          uuid: document.getElementById("beaconUuid").value,
+          major: parseInt(document.getElementById("beaconMajor").value),
+          minor: parseInt(document.getElementById("beaconMinor").value),
+          x: parseFloat(document.getElementById("beaconX").value),
+          y: parseFloat(document.getElementById("beaconY").value),
+          name: document.getElementById("beaconName").value,
+          tx_power: parseInt(document.getElementById("beaconTxPower").value),
+        };
+
+        try {
+          const response = await fetch(`${API_BASE}/beacons/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            showMessage("อัปเดต Beacon สำเร็จ!", "success");
+            hideAddBeaconForm();
+            resetBeaconForm();
+            loadBeacons();
+          }
+        } catch (error) {
+          showMessage("ไม่สามารถอัปเดต Beacon", "error");
+        }
+      }
+
+      async function deleteBeacon(id) {
+        if (!confirm("คุณแน่ใจหรือไม่ที่จะลบ Beacon นี้?")) return;
+
+        try {
+          const response = await fetch(`${API_BASE}/beacons/${id}`, {
+            method: "DELETE",
+          });
+
+          if (response.ok) {
+            showMessage("ลบ Beacon สำเร็จ!", "success");
+            loadBeacons();
+          }
+        } catch (error) {
+          showMessage("ไม่สามารถลบ Beacon", "error");
+        }
+      }
+
+      function resetBeaconForm() {
+        document.getElementById("beaconUuid").value =
+          "FDA50693-A4E2-4FB1-AFCF-C6EB07647825";
+        document.getElementById("beaconMajor").value = "";
+        document.getElementById("beaconMinor").value = "";
+        document.getElementById("beaconX").value = "";
+        document.getElementById("beaconY").value = "";
+        document.getElementById("beaconName").value = "";
+        document.getElementById("beaconTxPower").value = "-59";
+
+        const form = document.getElementById("addBeaconForm");
+        form.querySelector("h3").textContent = "เพิ่ม Beacon ใหม่";
+        const saveBtn = form.querySelector("button");
+        saveBtn.textContent = "บันทึก";
+        saveBtn.onclick = addBeacon;
+      }
+
+      // Floor edit and delete functions
+      async function editFloor(id) {
+        try {
+          const response = await fetch(`${API_BASE}/floors/${id}`);
+          const floor = await response.json();
+
+          document.getElementById("floorNumber").value = floor.floorNumber;
+          document.getElementById("floorName").value = floor.floorName || "";
+          document.getElementById("floorMapWidth").value = floor.mapWidth || "";
+          document.getElementById("floorMapHeight").value =
+            floor.mapHeight || "";
+
+          // Show existing image preview
+          const preview = document.getElementById("floorMapPreview");
+          if (floor.mapImageUrl) {
+            preview.innerHTML = `<img src="${floor.mapImageUrl}" style="max-width: 200px; margin-top: 10px;" /><br/><small>อัปโหลดรูปใหม่เพื่อเปลี่ยน</small>`;
+          } else {
+            preview.innerHTML = "";
+          }
+
+          showAddFloorForm();
+
+          const form = document.getElementById("addFloorForm");
+          form.querySelector("h3").textContent = "แก้ไขชั้น";
+          const saveBtn = form.querySelector("button");
+          saveBtn.textContent = "อัปเดต";
+          saveBtn.onclick = () => updateFloor(id, floor.mapImageUrl);
+        } catch (error) {
+          showMessage("ไม่สามารถโหลดข้อมูลชั้น", "error");
+        }
+      }
+
+      async function updateFloor(id, currentImageUrl) {
+        const buildingId = document.getElementById("floorBuildingSelect").value;
+
+        // Upload new image if selected
+        let mapImageUrl = currentImageUrl;
+        const fileInput = document.getElementById("floorMapImage");
+        if (fileInput.files && fileInput.files[0]) {
+          mapImageUrl = await uploadFloorMapImage(fileInput.files[0]);
+          if (!mapImageUrl) {
+            showMessage("ไม่สามารถอัปโหลดรูปภาพ", "error");
+            return;
+          }
+        }
+
+        const data = {
+          building_id: buildingId,
+          floor_number: parseInt(document.getElementById("floorNumber").value),
+          floor_name: document.getElementById("floorName").value,
+          map_width: parseFloat(document.getElementById("floorMapWidth").value),
+          map_height: parseFloat(
+            document.getElementById("floorMapHeight").value
+          ),
+          map_image_url: mapImageUrl,
+        };
+
+        try {
+          const response = await fetch(`${API_BASE}/floors/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            showMessage("อัปเดตชั้นสำเร็จ!", "success");
+            hideAddFloorForm();
+            resetFloorForm();
+            loadFloors();
+          }
+        } catch (error) {
+          showMessage("ไม่สามารถอัปเดตชั้น", "error");
+        }
+      }
+
+      async function deleteFloor(id) {
+        if (!confirm("คุณแน่ใจหรือไม่ที่จะลบชั้นนี้?")) return;
+
+        try {
+          const response = await fetch(`${API_BASE}/floors/${id}`, {
+            method: "DELETE",
+          });
+
+          if (response.ok) {
+            showMessage("ลบชั้นสำเร็จ!", "success");
+            loadFloors();
+          }
+        } catch (error) {
+          showMessage("ไม่สามารถลบชั้น", "error");
+        }
+      }
+
+      function resetFloorForm() {
+        document.getElementById("floorNumber").value = "";
+        document.getElementById("floorName").value = "";
+        document.getElementById("floorMapWidth").value = "";
+        document.getElementById("floorMapHeight").value = "";
+        document.getElementById("floorMapImage").value = "";
+        document.getElementById("floorMapPreview").innerHTML = "";
+
+        const form = document.getElementById("addFloorForm");
+        form.querySelector("h3").textContent = "เพิ่มชั้นใหม่";
+        const saveBtn = form.querySelector("button");
+        saveBtn.textContent = "บันทึก";
+        saveBtn.onclick = addFloor;
+      }
+    </script>
+  </body>
+</html>

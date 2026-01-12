@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Floor Map Coordinate Calculator</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #0066cc;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      .instructions {
+        background: #e7f3ff;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        border-left: 4px solid #0066cc;
+      }
+
+      .floor-selector {
+        margin-bottom: 20px;
+      }
+
+      select {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 2px solid #0066cc;
+        border-radius: 5px;
+      }
+
+      .map-container {
+        position: relative;
+        display: inline-block;
+        margin: 20px 0;
+        border: 2px solid #ddd;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .map-canvas {
+        display: block;
+        max-width: 100%;
+        cursor: crosshair;
+      }
+
+      .marker {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background: red;
+        border: 3px solid white;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+      }
+
+      .marker-label {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        white-space: nowrap;
+        pointer-events: none;
+        transform: translate(-50%, -150%);
+      }
+
+      .results {
+        background: #f8f8f8;
+        padding: 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+
+      .coordinate-display {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .coord-box {
+        background: white;
+        padding: 15px;
+        border-radius: 5px;
+        border-left: 4px solid #0066cc;
+      }
+
+      .coord-label {
+        font-weight: 600;
+        color: #666;
+        font-size: 12px;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+      }
+
+      .coord-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #0066cc;
+      }
+
+      .sql-output {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 15px;
+        border-radius: 5px;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        overflow-x: auto;
+        margin-top: 15px;
+      }
+
+      .button-group {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+      }
+
+      button {
+        background: #0066cc;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      button:hover {
+        background: #0052a3;
+      }
+
+      button.secondary {
+        background: #666;
+      }
+
+      button.secondary:hover {
+        background: #555;
+      }
+
+      button.danger {
+        background: #cc0000;
+      }
+
+      button.danger:hover {
+        background: #a30000;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #555;
+      }
+
+      input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+
+      .markers-list {
+        margin-top: 20px;
+      }
+
+      .marker-item {
+        background: white;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        border-left: 4px solid #0066cc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .marker-info {
+        flex: 1;
+      }
+
+      .grid-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+      }
+
+      .toggle-grid {
+        margin-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎯 Floor Map Coordinate Calculator</h1>
+
+      <div class="instructions">
+        <strong>📋 How to Use:</strong>
+        <ol style="margin-left: 20px; margin-top: 10px">
+          <li>Select a floor from the dropdown</li>
+          <li>Click on the map where you want to place a room/beacon</li>
+          <li>Enter the room/beacon details in the form</li>
+          <li>
+            The coordinates (X, Y in meters) will be calculated automatically
+          </li>
+          <li>Copy the generated SQL to add to your database</li>
+        </ol>
+      </div>
+
+      <div class="floor-selector">
+        <label for="floorSelect"><strong>Select Floor:</strong></label>
+        <select id="floorSelect">
+          <option value="">-- Select a Floor --</option>
+        </select>
+        <button class="toggle-grid" onclick="toggleGrid()">
+          Toggle Grid Overlay
+        </button>
+      </div>
+
+      <div id="mapSection" style="display: none">
+        <div class="map-container">
+          <canvas id="mapCanvas" class="map-canvas"></canvas>
+          <canvas
+            id="gridOverlay"
+            class="grid-overlay"
+            style="display: none"
+          ></canvas>
+          <div id="markers"></div>
+        </div>
+
+        <div class="results">
+          <h3>Current Click Position:</h3>
+          <div class="coordinate-display">
+            <div class="coord-box">
+              <div class="coord-label">X Coordinate (meters)</div>
+              <div class="coord-value" id="xCoord">--</div>
+            </div>
+            <div class="coord-box">
+              <div class="coord-label">Y Coordinate (meters)</div>
+              <div class="coord-value" id="yCoord">--</div>
+            </div>
+            <div class="coord-box">
+              <div class="coord-label">Pixel Position</div>
+              <div class="coord-value" id="pixelCoord" style="font-size: 18px">
+                --
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Room/Beacon Number:</label>
+            <input
+              type="text"
+              id="roomNumber"
+              placeholder="e.g., 301, Beacon-1"
+            />
+          </div>
+          <div class="form-group">
+            <label>Room/Beacon Name:</label>
+            <input
+              type="text"
+              id="roomName"
+              placeholder="e.g., Computer Lab, BLE Beacon North"
+            />
+          </div>
+
+          <div class="button-group">
+            <button onclick="saveMarker()">💾 Save Marker</button>
+            <button class="secondary" onclick="clearLastClick()">
+              Clear Last Click
+            </button>
+            <button class="danger" onclick="clearAllMarkers()">
+              Clear All Markers
+            </button>
+          </div>
+        </div>
+
+        <div class="markers-list" id="markersList"></div>
+
+        <div class="results" id="sqlResults" style="display: none">
+          <h3>Generated SQL Commands:</h3>
+          <div class="sql-output" id="sqlOutput"></div>
+          <div class="button-group">
+            <button onclick="copySql()">📋 Copy SQL</button>
+            <button class="secondary" onclick="downloadSql()">
+              💾 Download SQL File
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const floors = [
+        {
+          id: "00000000-0000-0000-0000-00000000f001",
+          number: 1,
+          mapUrl:
+            "https://res.cloudinary.com/dj40q9olm/image/upload/v1763279848/pai-dee/floor-maps/i1jnhrvycvzfbzimcv9g.png",
+          width: 50,
+          height: 40,
+        },
+        {
+          id: "00000000-0000-0000-0000-00000000f002",
+          number: 2,
+          mapUrl:
+            "https://res.cloudinary.com/dj40q9olm/image/upload/v1763279870/pai-dee/floor-maps/exwtcgcydw47p1rdkbyj.png",
+          width: 50,
+          height: 40,
+        },
+        {
+          id: "00000000-0000-0000-0000-00000000f003",
+          number: 3,
+          mapUrl:
+            "https://res.cloudinary.com/dj40q9olm/image/upload/v1763279888/pai-dee/floor-maps/htjyxfez5lbuin8itdc8.png",
+          width: 50,
+          height: 40,
+        },
+        {
+          id: "4f13a6a6-b5e4-410c-92a4-3b35529e855a",
+          number: 4,
+          mapUrl:
+            "https://res.cloudinary.com/dj40q9olm/image/upload/v1763279910/pai-dee/floor-maps/zehunc5fxlelzj4spqiu.png",
+          width: 50,
+          height: 40,
+        },
+        {
+          id: "02cbd1d2-0e0f-434d-b89e-ca13f080e674",
+          number: 5,
+          mapUrl:
+            "https://res.cloudinary.com/dj40q9olm/image/upload/v1763279928/pai-dee/floor-maps/ckdtntx9388pbwka0zbh.png",
+          width: 50,
+          height: 40,
+        },
+        {
+          id: "0a18aa20-6cc2-427f-9e13-b51c950c1bb3",
+          number: 6,
+          mapUrl:
+            "https://res.cloudinary.com/dj40q9olm/image/upload/v1763279949/pai-dee/floor-maps/kcr6srztfycepzmeyzlx.png",
+          width: 50,
+          height: 40,
+        },
+        {
+          id: "91ff87c3-420f-4f4c-866e-46890acbd429",
+          number: 7,
+          mapUrl:
+            "https://res.cloudinary.com/dj40q9olm/image/upload/v1763279970/pai-dee/floor-maps/wggryohfhyolzgvqye7i.png",
+          width: 50,
+          height: 40,
+        },
+      ];
+
+      let currentFloor = null;
+      let currentImage = null;
+      let savedMarkers = [];
+      let currentClick = { x: 0, y: 0, pixelX: 0, pixelY: 0 };
+
+      // Initialize
+      const floorSelect = document.getElementById("floorSelect");
+      floors.forEach((floor) => {
+        const option = document.createElement("option");
+        option.value = floor.id;
+        option.textContent = `Floor ${floor.number} (${floor.width}m × ${floor.height}m)`;
+        floorSelect.appendChild(option);
+      });
+
+      floorSelect.addEventListener("change", loadFloor);
+
+      function loadFloor() {
+        const floorId = floorSelect.value;
+        if (!floorId) {
+          document.getElementById("mapSection").style.display = "none";
+          return;
+        }
+
+        currentFloor = floors.find((f) => f.id === floorId);
+        savedMarkers = [];
+        updateMarkersList();
+
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = function () {
+          currentImage = img;
+          const canvas = document.getElementById("mapCanvas");
+          const ctx = canvas.getContext("2d");
+
+          // Set canvas size to image size
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          // Setup grid overlay
+          const gridCanvas = document.getElementById("gridOverlay");
+          gridCanvas.width = img.width;
+          gridCanvas.height = img.height;
+          drawGrid();
+
+          document.getElementById("mapSection").style.display = "block";
+          clearLastClick();
+        };
+        img.src = currentFloor.mapUrl;
+      }
+
+      function drawGrid() {
+        const canvas = document.getElementById("gridOverlay");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (!currentFloor || !currentImage) return;
+
+        const gridSize = 5; // 5 meters per grid
+        const pixelsPerMeter = currentImage.width / currentFloor.width;
+        const gridPixels = gridSize * pixelsPerMeter;
+
+        ctx.strokeStyle = "rgba(0, 102, 204, 0.3)";
+        ctx.lineWidth = 1;
+
+        // Vertical lines
+        for (let x = 0; x <= currentImage.width; x += gridPixels) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, currentImage.height);
+          ctx.stroke();
+        }
+
+        // Horizontal lines
+        for (let y = 0; y <= currentImage.height; y += gridPixels) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(currentImage.width, y);
+          ctx.stroke();
+        }
+
+        // Add labels
+        ctx.fillStyle = "rgba(0, 102, 204, 0.7)";
+        ctx.font = "12px Arial";
+        for (let i = 0; i * gridSize <= currentFloor.width; i++) {
+          ctx.fillText(`${i * gridSize}m`, i * gridPixels + 5, 15);
+        }
+        for (let i = 0; i * gridSize <= currentFloor.height; i++) {
+          ctx.fillText(`${i * gridSize}m`, 5, i * gridPixels + 15);
+        }
+      }
+
+      function toggleGrid() {
+        const gridCanvas = document.getElementById("gridOverlay");
+        if (gridCanvas.style.display === "none") {
+          gridCanvas.style.display = "block";
+        } else {
+          gridCanvas.style.display = "none";
+        }
+      }
+
+      document
+        .getElementById("mapCanvas")
+        .addEventListener("click", function (e) {
+          if (!currentFloor || !currentImage) return;
+
+          const rect = this.getBoundingClientRect();
+          const scaleX = this.width / rect.width;
+          const scaleY = this.height / rect.height;
+
+          const pixelX = (e.clientX - rect.left) * scaleX;
+          const pixelY = (e.clientY - rect.top) * scaleY;
+
+          // Calculate meters
+          const x = (pixelX / this.width) * currentFloor.width;
+          const y = (pixelY / this.height) * currentFloor.height;
+
+          currentClick = { x, y, pixelX, pixelY };
+
+          document.getElementById("xCoord").textContent = x.toFixed(2);
+          document.getElementById("yCoord").textContent = y.toFixed(2);
+          document.getElementById("pixelCoord").textContent = `${Math.round(
+            pixelX
+          )}, ${Math.round(pixelY)}`;
+        });
+
+      function saveMarker() {
+        const roomNumber = document.getElementById("roomNumber").value;
+        const roomName = document.getElementById("roomName").value;
+
+        if (!roomNumber) {
+          alert("Please enter a room/beacon number");
+          return;
+        }
+
+        const marker = {
+          number: roomNumber,
+          name: roomName || roomNumber,
+          x: currentClick.x,
+          y: currentClick.y,
+          pixelX: currentClick.pixelX,
+          pixelY: currentClick.pixelY,
+        };
+
+        savedMarkers.push(marker);
+        updateMarkersList();
+        generateSQL();
+
+        // Clear inputs
+        document.getElementById("roomNumber").value = "";
+        document.getElementById("roomName").value = "";
+      }
+
+      function clearLastClick() {
+        currentClick = { x: 0, y: 0, pixelX: 0, pixelY: 0 };
+        document.getElementById("xCoord").textContent = "--";
+        document.getElementById("yCoord").textContent = "--";
+        document.getElementById("pixelCoord").textContent = "--";
+      }
+
+      function clearAllMarkers() {
+        if (confirm("Are you sure you want to clear all markers?")) {
+          savedMarkers = [];
+          updateMarkersList();
+          document.getElementById("sqlResults").style.display = "none";
+        }
+      }
+
+      function updateMarkersList() {
+        const container = document.getElementById("markersList");
+        if (savedMarkers.length === 0) {
+          container.innerHTML = "";
+          return;
+        }
+
+        let html = "<h3>Saved Markers:</h3>";
+        savedMarkers.forEach((marker, index) => {
+          html += `
+                    <div class="marker-item">
+                        <div class="marker-info">
+                            <strong>${marker.number}</strong> - ${
+            marker.name
+          }<br>
+                            <small>X: ${marker.x.toFixed(
+                              2
+                            )}m, Y: ${marker.y.toFixed(
+            2
+          )}m (Pixel: ${Math.round(marker.pixelX)}, ${Math.round(
+            marker.pixelY
+          )})</small>
+                        </div>
+                        <button class="danger" onclick="removeMarker(${index})">Remove</button>
+                    </div>
+                `;
+        });
+        container.innerHTML = html;
+      }
+
+      function removeMarker(index) {
+        savedMarkers.splice(index, 1);
+        updateMarkersList();
+        if (savedMarkers.length > 0) {
+          generateSQL();
+        } else {
+          document.getElementById("sqlResults").style.display = "none";
+        }
+      }
+
+      function generateSQL() {
+        if (savedMarkers.length === 0) return;
+
+        let sql = `-- Generated SQL for Floor ${currentFloor.number}\n`;
+        sql += `-- Floor ID: ${currentFloor.id}\n\n`;
+        sql += `-- Insert Rooms:\n`;
+
+        savedMarkers.forEach((marker) => {
+          sql += `INSERT INTO rooms (floor_id, room_number, room_name, x, y, description) VALUES\n`;
+          sql += `('${currentFloor.id}', '${marker.number}', '${
+            marker.name
+          }', ${marker.x.toFixed(2)}, ${marker.y.toFixed(2)}, '');\n\n`;
+        });
+
+        sql += `-- Alternative: Insert as Beacons:\n`;
+        savedMarkers.forEach((marker) => {
+          sql += `INSERT INTO beacons (uuid, major, minor, floor_id, x, y, name, tx_power) VALUES\n`;
+          sql += `('FDA50693-A4E2-4FB1-AFCF-C6EB07647825', 1, ${
+            marker.number.replace(/\D/g, "") || "1"
+          }, '${currentFloor.id}', ${marker.x.toFixed(2)}, ${marker.y.toFixed(
+            2
+          )}, '${marker.name}', -59);\n\n`;
+        });
+
+        document.getElementById("sqlOutput").textContent = sql;
+        document.getElementById("sqlResults").style.display = "block";
+      }
+
+      function copySql() {
+        const sql = document.getElementById("sqlOutput").textContent;
+        navigator.clipboard.writeText(sql).then(() => {
+          alert("SQL copied to clipboard!");
+        });
+      }
+
+      function downloadSql() {
+        const sql = document.getElementById("sqlOutput").textContent;
+        const blob = new Blob([sql], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `floor_${currentFloor.number}_coordinates.sql`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    </script>
+  </body>
+</html>
