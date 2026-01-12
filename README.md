@@ -6,8 +6,3 @@ Large, accessible touch buttons
 BLE beacon-based positioning with GPS fallback
 Multi-floor building navigation
 Admin panel for managing building layouts
-
-Pai-nai/
-├── mobile/          # React Native Expo mobile app
-├── backend/         # Express.js API server
-└── README.md
