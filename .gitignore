@@ -1,0 +1,63 @@
+# Pai Dee Project - Git Ignore File
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Database
+*.sql.backup
+*.dump
+
+# Uploads
+uploads/
+*.jpg
+*.png
+*.gif
+*.pdf
+!sample-images/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Expo
+.expo/
+.expo-shared/
+
+# React Native
+*.jsbundle
+*.hbc
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
